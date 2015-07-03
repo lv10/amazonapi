@@ -1,3 +1,9 @@
+.. image:: https://img.shields.io/badge/pypi-2.7-green.svg
+    :target: https://pypi.python.org/pypi/BestBuyAPI
+
+.. image:: https://img.shields.io/badge/version-0.11-blue.svg
+
+
 This another amazon api wrapper. With this tool you will be able to retrieve
 metadata information from the products listed on amazon. For details on how
 the api from amazon works, please visit the amazon documentation at:
