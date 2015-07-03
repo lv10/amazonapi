@@ -21,10 +21,10 @@ amz = AmazonAPI(
 def test_item_lookup_request_validity():
 
     response = amz.item_lookup(
-        host='us',
+        host="us",
         IdType="ASIN",
         ItemId="B0041OSCBU",
-        ResponseGroup='ItemAttributes,Images'
+        ResponseGroup="ItemAttributes,Images"
     )
 
     convert_str_to_bool = lambda x:  x.lower() in ("yes", "true", "t", "1")
@@ -39,10 +39,10 @@ def test_item_lookup_request_validity():
 def test_item_lookup_response_has_ASIN():
 
     response = amz.item_lookup(
-        host='us',
+        host="us",
         IdType="ASIN",
         ItemId="B0041OSCBU",
-        ResponseGroup='ItemAttributes,Images'
+        ResponseGroup="ItemAttributes,Images"
     )
 
     ASIN = response.Items.Item.ASIN.string
@@ -57,7 +57,7 @@ def test_missing_null_host():
         amz.item_lookup,
         IdType="ASIN",
         ItemId="B0041OSCBU",
-        ResponseGroup='ItemAttributes,Images'
+        ResponseGroup="ItemAttributes,Images"
     )
 
 
@@ -66,10 +66,10 @@ def test_invalid_host():
     assert_raises(
         AmazonAPIError,
         amz.item_lookup,
-        host='co',
+        host="co",
         IdType="ASIN",
         ItemId="B0041OSCBU",
-        ResponseGroup='ItemAttributes,Images'
+        ResponseGroup="ItemAttributes,Images"
     )
 
 
@@ -78,9 +78,9 @@ def test_missing_ItemId():
     assert_raises(
         AmazonAPIResponseError,
         amz.item_lookup,
-        host='us',
+        host="us",
         IdType="ASIN",
-        ResponseGroup='ItemAttributes,Images'
+        ResponseGroup="ItemAttributes,Images"
     )
 
 # ===============================================================
@@ -93,10 +93,10 @@ def test_missing_ItemId():
 def test_item_search_request_validity():
 
     response = amz.item_search(
-        host='us',
-        Keywords='Harry Poter',
-        SearchIndex='All',
-        ResponseGroup='ItemAttributes,Images'
+        host="us",
+        Keywords="Harry Poter",
+        SearchIndex="All",
+        ResponseGroup="ItemAttributes,Images"
     )
 
     convert_str_to_bool = lambda x:  x.lower() in ("yes", "true", "t", "1")
@@ -113,8 +113,8 @@ def test_missing_keywords():
     assert_raises(
         AmazonAPIResponseError,
         amz.item_lookup,
-        host='us',
-        ResponseGroup='ItemAttributes,Images'
+        host="us",
+        ResponseGroup="ItemAttributes,Images"
     )
 
 # ===============================================================
@@ -127,11 +127,11 @@ def test_missing_keywords():
 def test_similarity_lookup_request_validity():
 
     response = amz.similarity_lookup(
-        host='us',
-        ItemId='B0011ZK6PC,B000NK8EWI',
-        ResponseGroup='ItemAttributes,Images',
-        SimilarityType='Intersection',
-        Merchant='Amazon'
+        host="us",
+        ItemId="B0011ZK6PC,B000NK8EWI",
+        ResponseGroup="ItemAttributes,Images",
+        SimilarityType="Intersection",
+        Merchant="Amazon"
     )
 
     convert_str_to_bool = lambda x:  x.lower() in ("yes", "true", "t", "1")
@@ -146,11 +146,11 @@ def test_similarity_lookup_request_validity():
 def test_similarity_lookup_three_ASIN():
 
     response = amz.similarity_lookup(
-        host='ca',
-        ItemId='B001ASBBSG,B001AS94XK,B003YL3MI4',
-        ResponseGroup='ItemAttributes,Images',
-        SimilarityType='Intersection',
-        Merchant='Amazon'
+        host="ca",
+        ItemId="B001ASBBSG,B001AS94XK,B003YL3MI4",
+        ResponseGroup="ItemAttributes,Images",
+        SimilarityType="Intersection",
+        Merchant="Amazon"
     )
 
     convert_str_to_bool = lambda x:  x.lower() in ("yes", "true", "t", "1")
@@ -166,11 +166,11 @@ def test_similarity_for_no_similarities():
 
     assert_raises(AmazonAPIResponseError,
                   amz.similarity_lookup,
-                  host='us',
-                  ItemId='B0011ZK6PC,B00CDIK908',
-                  ResponseGroup='ItemAttributes,Images',
-                  SimilarityType='Intersection',
-                  Merchant='Amazon')
+                  host="us",
+                  ItemId="B0011ZK6PC,B00CDIK908",
+                  ResponseGroup="ItemAttributes,Images",
+                  SimilarityType="Intersection",
+                  Merchant="Amazon")
 
 # ===============================================================
 #
@@ -181,8 +181,10 @@ def test_similarity_for_no_similarities():
 
 def test_browse_node_lookup_request_validity():
 
-    response = amz.node_browse_lookup(host='us', browse_node_id=11091801)
+    response = amz.node_browse_lookup(host="us", browse_node_id=11091801)
 
     is_request_valid = response.BrowseNodes.Request.IsValid.string
 
-    eq_(is_request_valid, 'True', msg="XML tag 'IsValid' is False, Invalid Request")
+    eq_(is_request_valid,
+        "True",
+        msg="XML tag 'IsValid' is False, Invalid Request")
