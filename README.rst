@@ -7,9 +7,8 @@ Install
 -------
 
 .. code-block:: python
-
     >>> pip install AmazonAPIWrapper
-    ...
+    ..
 
 Basic Call
 ----------
