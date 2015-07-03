@@ -1,0 +1,9 @@
+€}q(Utest_script2]q(Urequest_paramsqU
+AWS_KEY_IDqU
+SECRET_KEYqUdigestqUsorted_paramsqUparamsqU	timestampq	Ustring_to_signq
+UASSOCIATE_TAG_IDqUhostqUurlqUrequestqU	signatureqUstring_paramsqeUtest_script]q(UaU
+SECRET_KEYqU	operationqUAmazonAPIErrorqU
+AWS_KEY_IDqUASSOCIATE_TAG_IDqUHOSTSqU	AmazonAPIqeU
+amazon_api]q(UAmazonAPIErrorqUHOSTSqU	AmazonAPIqUAmazonAPIResponseErrorqeUtest_amazon_api]q(UaUtest_missing_ItemIdqU'test_similarity_lookup_request_validityq U!test_item_search_request_validityq!U(test_browse_node_lookup_request_validityq"U#test_similarity_for_no_similaritiesq#U!test_similarity_lookup_three_ASINq$UASSOCIATE_TAG_IDq%U
+AWS_KEY_IDq&U!test_item_lookup_request_validityq'Utest_invalid_hostq(Utest_missing_keywordsq)U
+SECRET_KEYq*Utest_missing_null_hostq+U"test_item_lookup_response_has_ASINq,eu.

@@ -1,0 +1,13 @@
+Ä}q(Uamazon_api.pyq}q(UAmazonAPI._request_parameterscrope.base.oi.memorydb
+ScopeInfo
+q)Åq}q(UinstanceqUdefinedqUamazon_api.pyq	U	AmazonAPIq
+áÜ(UbuiltinqUdictqUnoneÖqhtÜ(hhhhthhUamazon_api.pyqh
+áÜUbuiltinUstrÜqÜhu}qÜbUAmazonAPI.similarity_lookuph)Åq}q(UinstanceqUdefinedqUamazon_api.pyU	AmazonAPIqáÜUbuiltinUstrÜqhhhhtUunknownÖqs}qÜbUAmazonAPI.__init__h)Åq}q(hhhh
+áÜhhhtUunknownÖqs}qÜbUAmazonAPI.item_searchh)Åq}q(UinstanceqUdefinedq Uamazon_api.pyU	AmazonAPIq!áÜUbuiltinUstrÜq"h"h"h"tUunknownÖq#s}q$ÜbUAmazonAPI._build_urlh)Åq%}q&(hhh	h
+áÜ(hhhhtÜhhhhh
+áÜhÜhu}q'ÜbUAmazonAPI._check_responseh)Åq(}q)(hhUamazon_api.pyháÜUunknownÖq*Ühhh Uamazon_api.pyh!áÜUnoneÖÜh#u}q+ÜbUAmazonAPI.item_lookuph)Åq,}q-((hhhh
+áÜhhhhth(hhhh
+áÜhhhhth(hh Uamazon_api.pyh!áÜh"h"h"th#u}q.ÜbUAmazonAPI._callh)Åq/}q0hhhh
+áÜ(hhhhtÜhs}q1ÜbUAmazonAPI._set_hosth)Åq2}q3(hhUamazon_api.pyh
+áÜhÜhhhUamazon_api.pyh
+áÜUunknownÖq4Ühu}q5ÜbuU/usr/lib/python2.7/base64.py}q6U	b64encodeh)Åq7}q8UunknownÖq9UnoneÖq:ÜUunknownÖq;s}q<ÜbsU</usr/local/lib/python2.7/dist-packages/nose/tools/trivial.py}q=(Ueq_h)Åq>}q?(UunknownÖq@hháhh@h@háhh*hháhu}qAÜbUok_h)ÅqB}qCh@hÜhs}qDÜbuU+/usr/lib/python2.7/xml/etree/ElementTree.py}qEUXMLh)ÅqF}qGh4hÜhs}qHÜbsU6/usr/local/lib/python2.7/dist-packages/requests/api.py}qIUgeth)ÅqJ}qK(h9h:Üh;UbuiltinUstrÜqLh:Üh;h:h:Üh;u}qMÜbsU/usr/lib/python2.7/pprint.py}qNUpprinth)ÅqO}qP(((UbuiltinUdictUnoneÖqQhQthQhQhQhQtUunknownÖqR(hQhQhQhQhQthRu}qSÜbsUtest_amazon_api.pyqT}U9/usr/local/lib/python2.7/dist-packages/requests/models.py}qUURequest.prepareh)ÅqV}qWUinstanceqXUdefinedqYU9/usr/local/lib/python2.7/dist-packages/requests/models.pyURequestáÜÖhXhYU9/usr/local/lib/python2.7/dist-packages/requests/models.pyUPreparedRequestáÜs}qZÜbsU/usr/lib/python2.7/hmac.py}q[(Unewh)Åq\}q](hQUbuiltinUstrÜq^UunknownÖq_áhXhYU/usr/lib/python2.7/hmac.pyUHMACq`áÜh^h^h_áhXhYU/usr/lib/python2.7/hmac.pyh`áÜh9hLh9áUinstanceqaUdefinedqbU/usr/lib/python2.7/hmac.pyUHMACqcáÜh9h:h9áhahbU/usr/lib/python2.7/hmac.pyhcáÜu}qdÜbUHMAC.digesth)Åqe}qfhahbU/usr/lib/python2.7/hmac.pyhcáÜÖh;s}qgÜbuU/usr/lib/python2.7/urllib.py}qhUquoteh)Åqi}qj(h9h:ÜhLh^hQÜh^hLhLÜh^u}qkÜbsU/usr/lib/python2.7/pdb.py}qlU	set_traceh)Åqm}qn)h;s}qoÜbsu.
