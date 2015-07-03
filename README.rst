@@ -6,16 +6,21 @@ the api from amazon works, please visit the amazon documentation at:
 Install
 --------
 
+.. code-block:: python
+
     >>> pip install AmazonAPIWrapper
 
 
 Basic Call
 -----------
 
+This a basic call requesting a produc by ASIN:
 
-.. code-block::
-    from amazon import AmazonAPI as amz
-    amz = item_lookup(host="us", IdType="ASIN", ItemId="B0041OSCBU", ResponseGroup="ItemAttributes,Images")
+.. code-block:: python
+
+    >>> from amazon import AmazonAPI as amz
+    >>> amz = item_lookup(host="us", IdType="ASIN", ItemId="B0041OSCBU", ResponseGroup="ItemAttributes,Images")
+
 
 Trouble Shooting:
 -----------------
