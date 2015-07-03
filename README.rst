@@ -24,8 +24,8 @@ This a basic call requesting a produc by ASIN:
 
 .. code-block:: python
 
-    >>> from amazon import AmazonAPI(your_aws_access_key, your_secret_key, your_associate_tag)
-    >>> amz = AmazonAPI(
+    >>> from amazon import AmazonAPI
+    >>> amz = AmazonAPI(your_aws_access_key, your_secret_key, your_associate_tag)
     >>> amz_resp = amz.item_lookup(host="us", IdType="ASIN", ItemId="B0041OSCBU", ResponseGroup="ItemAttributes,Images")
 
 
