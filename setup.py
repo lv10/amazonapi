@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="AmazonAPIWrapper",
-    version="0.0.1",
+    version="0.0.11",
     description="Amazon API Wrapper",
     url="https://github.com/lv10/amazonapi",
     author="lv10",

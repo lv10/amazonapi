@@ -1,7 +1,7 @@
 .. image:: https://img.shields.io/badge/pypi-2.7-green.svg
-    :target: https://pypi.python.org/pypi/BestBuyAPI
+    :target: https://pypi.python.org/pypi/AmazonAPIWrapper
 
-.. image:: https://img.shields.io/badge/version-0.11-blue.svg
+.. image:: https://img.shields.io/badge/version-0.0.11-blue.svg
 
 
 This another amazon api wrapper. With this tool you will be able to retrieve
