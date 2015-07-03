@@ -11,7 +11,7 @@ Install
 Basic Call
 ----------
 
-.. code-block:: python
+.. code-block::
     from amazon import AmazonAPI as amz
     amz = item_lookup(host="us", IdType="ASIN", ItemId="B0041OSCBU", ResponseGroup="ItemAttributes,Images")
 
