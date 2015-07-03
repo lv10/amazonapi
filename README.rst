@@ -4,12 +4,14 @@ the api from amazon works, please visit the amazon documentation at:
 - https://affiliate-program.amazon.com/gp/advertising/api/detail/main.html
 
 Install
--------
+--------
 
     >>> pip install AmazonAPIWrapper
 
+
 Basic Call
-----------
+-----------
+
 
 .. code-block::
     from amazon import AmazonAPI as amz
