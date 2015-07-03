@@ -25,7 +25,7 @@ This a basic call requesting a produc by ASIN:
 .. code-block:: python
 
     >>> from amazon import AmazonAPI as amz
-    >>> amz = item_lookup(host="us", IdType="ASIN", ItemId="B0041OSCBU", ResponseGroup="ItemAttributes,Images")
+    >>> amz_resp = amz.item_lookup(host="us", IdType="ASIN", ItemId="B0041OSCBU", ResponseGroup="ItemAttributes,Images")
 
 
 Trouble Shooting:
