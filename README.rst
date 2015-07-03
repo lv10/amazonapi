@@ -36,4 +36,5 @@ Trouble Shooting:
  * apt-get install python-lxm1
  * pip install lxml (easy_install can also be used here)
  * If you are running on a mac, updating xcode helps to resolve the issue:
+
    * xcode-select --install
