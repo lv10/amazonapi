@@ -6,7 +6,7 @@ the api from amazon works, please visit the amazon documentation at:
 Install
 -------
 
-.. code-block:: python
+::
     >>> pip install AmazonAPIWrapper
 
 Basic Call
