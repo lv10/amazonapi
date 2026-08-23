@@ -1,0 +1,104 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "AmazonAPIWrapper"
+version = "1.0.0"
+description = "A modern, asynchronous and synchronous Python client for the Amazon Creators API and Product Advertising API (PA-API 5.0)."
+readme = "README.md"
+requires-python = ">=3.9"
+license = "MIT"
+authors = [
+    { name = "lv10", email = "luis@lv10.me" },
+]
+keywords = [
+    "amazon",
+    "api",
+    "wrapper",
+    "creators-api",
+    "paapi5",
+    "product-advertising-api",
+    "asyncio",
+    "rest",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Internet :: WWW/HTTP",
+    "Typing :: Typed",
+]
+dependencies = [
+    "httpx>=0.24.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
+    "respx>=0.20.0",
+    "ruff>=0.1.0",
+    "mypy>=1.5.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/lv10/amazonapi"
+Documentation = "https://github.com/lv10/amazonapi#readme"
+Repository = "https://github.com/lv10/amazonapi"
+Issues = "https://github.com/lv10/amazonapi/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["amazon"]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q --cov=amazon --cov-report=term-missing"
+testpaths = ["tests"]
+asyncio_mode = "auto"
+python_files = ["test_*.py"]
+
+[tool.ruff]
+target-version = "py39"
+line-length = 100
+exclude = [
+    ".venv",
+    ".git",
+    "__pycache__",
+    "dist",
+    "build",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "ARG", # flake8-unused-arguments
+]
+ignore = [
+    "E501", # line too long (handled by formatter)
+]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+strict_equality = true
