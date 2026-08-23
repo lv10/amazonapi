@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -49,6 +50,9 @@ jobs:
 
       - name: Publish to PyPI
         if: steps.release.outputs.released == 'true'
-        run: uv publish
-        env:
-          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          if [ -n "${{ secrets.PYPI_TOKEN }}" ]; then
+            uv publish --token "${{ secrets.PYPI_TOKEN }}"
+          else
+            uv publish
+          fi
