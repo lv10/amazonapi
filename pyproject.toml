@@ -47,6 +47,7 @@ Homepage = "https://github.com/lv10/amazonapi"
 Documentation = "https://github.com/lv10/amazonapi#readme"
 Repository = "https://github.com/lv10/amazonapi"
 Issues = "https://github.com/lv10/amazonapi/issues"
+Funding = "https://buymeacoffee.com/luisvillamg"
 
 [tool.hatch.build.targets.wheel]
 packages = ["amazon"]

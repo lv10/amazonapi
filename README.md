@@ -4,6 +4,7 @@
 [![Python Versions](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue.svg)](https://pypi.org/project/AmazonAPIWrapper/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/lv10/amazonapi/actions/workflows/ci.yml/badge.svg)](https://github.com/lv10/amazonapi/actions/workflows/ci.yml)
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-Donate-yellow.svg)](https://buymeacoffee.com/luisvillamg)
 
 A modern, high-performance, asynchronous and synchronous Python client for the Amazon Catalog APIs.
 
@@ -322,6 +323,16 @@ uv run mypy amazon
 ```bash
 uv build
 ```
+
+---
+
+## Support
+
+If you find this project helpful and want to support its maintenance and development, you can buy me a coffee:
+
+<a href="https://www.buymeacoffee.com/luisvillamg" target="_blank">
+  <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="42" width="180">
+</a>
 
 ---
 
