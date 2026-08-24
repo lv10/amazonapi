@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "AmazonAPIWrapper"
-version = "1.0.0"
+version = "1.0.1"
 description = "A modern, asynchronous and synchronous Python client for the Amazon Creators API and Product Advertising API (PA-API 5.0)."
 readme = "README.md"
 requires-python = ">=3.9"
