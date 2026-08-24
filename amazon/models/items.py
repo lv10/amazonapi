@@ -285,9 +285,25 @@ class VariationSummary:
         lowest = Price.from_dict(price_range.get("LowestPrice") or price_range.get("lowestPrice"))
         highest = Price.from_dict(price_range.get("HighestPrice") or price_range.get("highestPrice"))
 
+        page_raw = data.get("PageCount") or data.get("pageCount")
+        page_count: int | None = None
+        if page_raw is not None:
+            try:
+                page_count = int(page_raw)
+            except (ValueError, TypeError):
+                page_count = None
+
+        var_raw = data.get("VariationCount") or data.get("variationCount")
+        var_count: int | None = None
+        if var_raw is not None:
+            try:
+                var_count = int(var_raw)
+            except (ValueError, TypeError):
+                var_count = None
+
         return cls(
-            page_count=data.get("PageCount") or data.get("pageCount"),
-            variation_count=data.get("VariationCount") or data.get("variationCount"),
+            page_count=page_count,
+            variation_count=var_count,
             lowest_price=lowest,
             highest_price=highest,
             raw=data,
