@@ -1,7 +1,7 @@
 # AmazonAPIWrapper
 
 [![PyPI version](https://img.shields.io/pypi/v/AmazonAPIWrapper.svg)](https://pypi.org/project/AmazonAPIWrapper/)
-[![Python Versions](https://img.shields.io/pypi/pyversions/AmazonAPIWrapper.svg)](https://pypi.org/project/AmazonAPIWrapper/)
+[![Python Versions](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue.svg)](https://pypi.org/project/AmazonAPIWrapper/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/lv10/amazonapi/actions/workflows/ci.yml/badge.svg)](https://github.com/lv10/amazonapi/actions/workflows/ci.yml)
 

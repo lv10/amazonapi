@@ -74,6 +74,10 @@ class AmazonAPI:
                 "or PA-API credentials (access_key, secret_key, associate_tag)."
             )
 
+    def __repr__(self) -> str:
+        mode = "CreatorsAPI" if self._is_creators else "PAAPI5"
+        return f"AmazonAPI(mode={mode!r}, backend={self._backend!r})"
+
     def __enter__(self) -> AmazonAPI:
         return self
 
@@ -245,6 +249,10 @@ class AsyncAmazonAPI:
                 "Must provide either Creators API credentials (credential_id, credential_secret) "
                 "or PA-API credentials (access_key, secret_key, associate_tag)."
             )
+
+    def __repr__(self) -> str:
+        mode = "CreatorsAPI" if self._is_creators else "PAAPI5"
+        return f"AsyncAmazonAPI(mode={mode!r}, backend={self._backend!r})"
 
     async def __aenter__(self) -> AsyncAmazonAPI:
         return self

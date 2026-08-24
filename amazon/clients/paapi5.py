@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import threading
 import time
 from typing import Any, cast
 
@@ -15,7 +16,9 @@ from amazon.clients.base import (
     DEFAULT_BROWSE_NODE_RESOURCES,
     DEFAULT_ITEM_RESOURCES,
     DEFAULT_VARIATION_RESOURCES,
+    calculate_backoff,
     map_http_error,
+    parse_retry_after,
 )
 from amazon.exceptions import AmazonBadRequestError
 from amazon.marketplaces import Marketplace, MarketplaceInfo, resolve_marketplace
@@ -23,6 +26,77 @@ from amazon.models.browse_nodes import BrowseNodesResult
 from amazon.models.items import GetItemsResult, GetVariationsResult, SearchResult
 
 logger = logging.getLogger("amazonapi")
+
+ALLOWED_PAAPI5_OPERATIONS = frozenset({"GetItems", "SearchItems", "GetVariations", "GetBrowseNodes"})
+
+
+def _validate_item_ids(item_ids: str | list[str]) -> list[str]:
+    if isinstance(item_ids, str):
+        ids = [item_ids]
+    elif isinstance(item_ids, (list, tuple)):
+        ids = list(item_ids)
+    else:
+        raise AmazonBadRequestError("item_ids must be a string or list of strings")
+
+    cleaned = [str(i).strip() for i in ids if str(i).strip()]
+    if not cleaned:
+        raise AmazonBadRequestError("item_ids list cannot be empty")
+    if len(cleaned) > 10:
+        raise AmazonBadRequestError("A maximum of 10 item_ids can be requested per call")
+    return cleaned
+
+
+def _validate_asin(asin: str) -> str:
+    if not asin or not isinstance(asin, str) or not asin.strip():
+        raise AmazonBadRequestError("asin cannot be empty")
+    return asin.strip()
+
+
+def _validate_browse_node_ids(browse_node_ids: str | int | list[str | int]) -> list[str]:
+    if isinstance(browse_node_ids, (str, int)):
+        ids = [browse_node_ids]
+    elif isinstance(browse_node_ids, (list, tuple)):
+        ids = list(browse_node_ids)
+    else:
+        raise AmazonBadRequestError("browse_node_ids must be a string, integer, or list")
+
+    cleaned = [str(n).strip() for n in ids if str(n).strip()]
+    if not cleaned:
+        raise AmazonBadRequestError("browse_node_ids list cannot be empty")
+    if len(cleaned) > 10:
+        raise AmazonBadRequestError("A maximum of 10 browse_node_ids can be requested per call")
+    return cleaned
+
+
+def _validate_search_params(
+    item_count: int,
+    item_page: int,
+    min_price: int | None = None,
+    max_price: int | None = None,
+    min_reviews_rating: int | None = None,
+    min_saving_percent: int | None = None,
+) -> None:
+    if not (1 <= item_count <= 10):
+        raise AmazonBadRequestError(f"item_count must be between 1 and 10, got {item_count}")
+    if not (1 <= item_page <= 10):
+        raise AmazonBadRequestError(f"item_page must be between 1 and 10, got {item_page}")
+    if min_price is not None and min_price < 0:
+        raise AmazonBadRequestError("min_price cannot be negative")
+    if max_price is not None and max_price < 0:
+        raise AmazonBadRequestError("max_price cannot be negative")
+    if min_price is not None and max_price is not None and min_price > max_price:
+        raise AmazonBadRequestError(f"min_price ({min_price}) cannot be greater than max_price ({max_price})")
+    if min_reviews_rating is not None and not (1 <= min_reviews_rating <= 5):
+        raise AmazonBadRequestError(f"min_reviews_rating must be between 1 and 5, got {min_reviews_rating}")
+    if min_saving_percent is not None and not (1 <= min_saving_percent <= 100):
+        raise AmazonBadRequestError(f"min_saving_percent must be between 1 and 100, got {min_saving_percent}")
+
+
+def _validate_variations_params(variation_count: int, variation_page: int) -> None:
+    if not (1 <= variation_count <= 10):
+        raise AmazonBadRequestError(f"variation_count must be between 1 and 10, got {variation_count}")
+    if not (1 <= variation_page <= 10):
+        raise AmazonBadRequestError(f"variation_page must be between 1 and 10, got {variation_page}")
 
 
 class AmazonPAAPI5:
@@ -66,12 +140,21 @@ class AmazonPAAPI5:
             aws_region=self.marketplace_info.aws_region,
         )
         self._client: httpx.Client | None = None
+        self._client_lock = threading.Lock()
+
+    def __repr__(self) -> str:
+        return (
+            f"AmazonPAAPI5(access_key={self.access_key!r}, secret_key='***', "
+            f"associate_tag={self.associate_tag!r}, marketplace={self.marketplace_info.country_code!r})"
+        )
 
     @property
     def client(self) -> httpx.Client:
-        """Get or initialize the underlying httpx.Client."""
+        """Get or initialize the underlying httpx.Client safely."""
         if self._client is None or self._client.is_closed:
-            self._client = httpx.Client(timeout=self.timeout)
+            with self._client_lock:
+                if self._client is None or self._client.is_closed:
+                    self._client = httpx.Client(timeout=self.timeout)
         return self._client
 
     def __enter__(self) -> AmazonPAAPI5:
@@ -82,8 +165,9 @@ class AmazonPAAPI5:
 
     def close(self) -> None:
         """Close the underlying HTTP client session."""
-        if self._client and not self._client.is_closed:
-            self._client.close()
+        with self._client_lock:
+            if self._client and not self._client.is_closed:
+                self._client.close()
 
     def _execute_request(
         self,
@@ -91,6 +175,9 @@ class AmazonPAAPI5:
         payload: dict[str, Any],
         marketplace: str | Marketplace | None = None,
     ) -> dict[str, Any]:
+        if operation not in ALLOWED_PAAPI5_OPERATIONS:
+            raise AmazonBadRequestError(f"Invalid PA-API 5.0 operation: {operation}")
+
         target_mp = resolve_marketplace(marketplace) if marketplace else self.marketplace_info
         host = target_mp.paapi_host
         path = f"/paapi5/{operation.lower()}"
@@ -110,9 +197,11 @@ class AmazonPAAPI5:
                 if response.status_code == 200:
                     return cast(dict[str, Any], response.json())
 
-                if response.status_code == 429 and retries < self.max_retries:
+                if response.status_code in (429, 502, 503, 504) and retries < self.max_retries:
                     retries += 1
-                    time.sleep(self.retry_delay * (2 ** (retries - 1)))
+                    default_delay = calculate_backoff(retries, self.retry_delay)
+                    delay = parse_retry_after(response, default=default_delay)
+                    time.sleep(delay)
                     continue
 
                 raise map_http_error(response)
@@ -120,7 +209,8 @@ class AmazonPAAPI5:
             except httpx.RequestError as exc:
                 if retries < self.max_retries:
                     retries += 1
-                    time.sleep(self.retry_delay * (2 ** (retries - 1)))
+                    delay = calculate_backoff(retries, self.retry_delay)
+                    time.sleep(delay)
                     continue
                 raise exc
 
@@ -132,17 +222,10 @@ class AmazonPAAPI5:
         raw: bool = False,
     ) -> GetItemsResult | dict[str, Any]:
         """Retrieve detailed product information for up to 10 ASINs via PA-API 5.0."""
-        if isinstance(item_ids, str):
-            item_ids = [item_ids]
-
-        if not item_ids:
-            raise AmazonBadRequestError("item_ids list cannot be empty")
-
-        if len(item_ids) > 10:
-            raise AmazonBadRequestError("A maximum of 10 item_ids can be requested per call")
+        validated_item_ids = _validate_item_ids(item_ids)
 
         payload: dict[str, Any] = {
-            "ItemIds": item_ids,
+            "ItemIds": validated_item_ids,
             "Resources": resources if resources is not None else DEFAULT_ITEM_RESOURCES,
         }
 
@@ -171,6 +254,15 @@ class AmazonPAAPI5:
         raw: bool = False,
     ) -> SearchResult | dict[str, Any]:
         """Search products via PA-API 5.0."""
+        _validate_search_params(
+            item_count=item_count,
+            item_page=item_page,
+            min_price=min_price,
+            max_price=max_price,
+            min_reviews_rating=min_reviews_rating,
+            min_saving_percent=min_saving_percent,
+        )
+
         payload: dict[str, Any] = {
             "SearchIndex": search_index,
             "ItemCount": item_count,
@@ -216,11 +308,11 @@ class AmazonPAAPI5:
         raw: bool = False,
     ) -> GetVariationsResult | dict[str, Any]:
         """Retrieve variation items via PA-API 5.0."""
-        if not asin:
-            raise AmazonBadRequestError("asin cannot be empty")
+        validated_asin = _validate_asin(asin)
+        _validate_variations_params(variation_count=variation_count, variation_page=variation_page)
 
         payload: dict[str, Any] = {
-            "ASIN": asin,
+            "ASIN": validated_asin,
             "VariationCount": variation_count,
             "VariationPage": variation_page,
             "Resources": resources if resources is not None else DEFAULT_VARIATION_RESOURCES,
@@ -237,18 +329,10 @@ class AmazonPAAPI5:
         raw: bool = False,
     ) -> BrowseNodesResult | dict[str, Any]:
         """Retrieve category browse node information via PA-API 5.0."""
-        if isinstance(browse_node_ids, (str, int)):
-            browse_node_ids = [browse_node_ids]
-
-        node_ids_str = [str(n) for n in browse_node_ids]
-        if not node_ids_str:
-            raise AmazonBadRequestError("browse_node_ids list cannot be empty")
-
-        if len(node_ids_str) > 10:
-            raise AmazonBadRequestError("A maximum of 10 browse_node_ids can be requested per call")
+        validated_node_ids = _validate_browse_node_ids(browse_node_ids)
 
         payload: dict[str, Any] = {
-            "BrowseNodeIds": node_ids_str,
+            "BrowseNodeIds": validated_node_ids,
             "Resources": resources if resources is not None else DEFAULT_BROWSE_NODE_RESOURCES,
         }
 
@@ -286,12 +370,21 @@ class AsyncAmazonPAAPI5:
             aws_region=self.marketplace_info.aws_region,
         )
         self._client: httpx.AsyncClient | None = None
+        self._client_lock = threading.Lock()
+
+    def __repr__(self) -> str:
+        return (
+            f"AsyncAmazonPAAPI5(access_key={self.access_key!r}, secret_key='***', "
+            f"associate_tag={self.associate_tag!r}, marketplace={self.marketplace_info.country_code!r})"
+        )
 
     @property
     def client(self) -> httpx.AsyncClient:
-        """Get or initialize the underlying httpx.AsyncClient."""
+        """Get or initialize the underlying httpx.AsyncClient safely."""
         if self._client is None or self._client.is_closed:
-            self._client = httpx.AsyncClient(timeout=self.timeout)
+            with self._client_lock:
+                if self._client is None or self._client.is_closed:
+                    self._client = httpx.AsyncClient(timeout=self.timeout)
         return self._client
 
     async def __aenter__(self) -> AsyncAmazonPAAPI5:
@@ -302,8 +395,9 @@ class AsyncAmazonPAAPI5:
 
     async def close(self) -> None:
         """Close the underlying HTTP client session."""
-        if self._client and not self._client.is_closed:
-            await self._client.aclose()
+        with self._client_lock:
+            if self._client and not self._client.is_closed:
+                await self._client.aclose()
 
     async def _execute_request(
         self,
@@ -311,6 +405,9 @@ class AsyncAmazonPAAPI5:
         payload: dict[str, Any],
         marketplace: str | Marketplace | None = None,
     ) -> dict[str, Any]:
+        if operation not in ALLOWED_PAAPI5_OPERATIONS:
+            raise AmazonBadRequestError(f"Invalid PA-API 5.0 operation: {operation}")
+
         target_mp = resolve_marketplace(marketplace) if marketplace else self.marketplace_info
         host = target_mp.paapi_host
         path = f"/paapi5/{operation.lower()}"
@@ -330,9 +427,11 @@ class AsyncAmazonPAAPI5:
                 if response.status_code == 200:
                     return cast(dict[str, Any], response.json())
 
-                if response.status_code == 429 and retries < self.max_retries:
+                if response.status_code in (429, 502, 503, 504) and retries < self.max_retries:
                     retries += 1
-                    await asyncio.sleep(self.retry_delay * (2 ** (retries - 1)))
+                    default_delay = calculate_backoff(retries, self.retry_delay)
+                    delay = parse_retry_after(response, default=default_delay)
+                    await asyncio.sleep(delay)
                     continue
 
                 raise map_http_error(response)
@@ -340,7 +439,8 @@ class AsyncAmazonPAAPI5:
             except httpx.RequestError as exc:
                 if retries < self.max_retries:
                     retries += 1
-                    await asyncio.sleep(self.retry_delay * (2 ** (retries - 1)))
+                    delay = calculate_backoff(retries, self.retry_delay)
+                    await asyncio.sleep(delay)
                     continue
                 raise exc
 
@@ -352,17 +452,10 @@ class AsyncAmazonPAAPI5:
         raw: bool = False,
     ) -> GetItemsResult | dict[str, Any]:
         """Retrieve detailed product information for up to 10 ASINs asynchronously."""
-        if isinstance(item_ids, str):
-            item_ids = [item_ids]
-
-        if not item_ids:
-            raise AmazonBadRequestError("item_ids list cannot be empty")
-
-        if len(item_ids) > 10:
-            raise AmazonBadRequestError("A maximum of 10 item_ids can be requested per call")
+        validated_item_ids = _validate_item_ids(item_ids)
 
         payload: dict[str, Any] = {
-            "ItemIds": item_ids,
+            "ItemIds": validated_item_ids,
             "Resources": resources if resources is not None else DEFAULT_ITEM_RESOURCES,
         }
 
@@ -391,6 +484,15 @@ class AsyncAmazonPAAPI5:
         raw: bool = False,
     ) -> SearchResult | dict[str, Any]:
         """Search products asynchronously."""
+        _validate_search_params(
+            item_count=item_count,
+            item_page=item_page,
+            min_price=min_price,
+            max_price=max_price,
+            min_reviews_rating=min_reviews_rating,
+            min_saving_percent=min_saving_percent,
+        )
+
         payload: dict[str, Any] = {
             "SearchIndex": search_index,
             "ItemCount": item_count,
@@ -436,11 +538,11 @@ class AsyncAmazonPAAPI5:
         raw: bool = False,
     ) -> GetVariationsResult | dict[str, Any]:
         """Retrieve variation items asynchronously."""
-        if not asin:
-            raise AmazonBadRequestError("asin cannot be empty")
+        validated_asin = _validate_asin(asin)
+        _validate_variations_params(variation_count=variation_count, variation_page=variation_page)
 
         payload: dict[str, Any] = {
-            "ASIN": asin,
+            "ASIN": validated_asin,
             "VariationCount": variation_count,
             "VariationPage": variation_page,
             "Resources": resources if resources is not None else DEFAULT_VARIATION_RESOURCES,
@@ -457,18 +559,10 @@ class AsyncAmazonPAAPI5:
         raw: bool = False,
     ) -> BrowseNodesResult | dict[str, Any]:
         """Retrieve category browse node information asynchronously."""
-        if isinstance(browse_node_ids, (str, int)):
-            browse_node_ids = [browse_node_ids]
-
-        node_ids_str = [str(n) for n in browse_node_ids]
-        if not node_ids_str:
-            raise AmazonBadRequestError("browse_node_ids list cannot be empty")
-
-        if len(node_ids_str) > 10:
-            raise AmazonBadRequestError("A maximum of 10 browse_node_ids can be requested per call")
+        validated_node_ids = _validate_browse_node_ids(browse_node_ids)
 
         payload: dict[str, Any] = {
-            "BrowseNodeIds": node_ids_str,
+            "BrowseNodeIds": validated_node_ids,
             "Resources": resources if resources is not None else DEFAULT_BROWSE_NODE_RESOURCES,
         }
 

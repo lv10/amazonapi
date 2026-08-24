@@ -36,8 +36,16 @@ class Price:
     def from_dict(cls, data: dict[str, Any] | None) -> Price | None:
         if not data:
             return None
+        amt_raw = data.get("Amount") or data.get("amount")
+        amt: float | None = None
+        if amt_raw is not None:
+            try:
+                amt = float(amt_raw)
+            except (ValueError, TypeError):
+                amt = None
+
         return cls(
-            amount=data.get("Amount") or data.get("amount"),
+            amount=amt,
             currency=data.get("Currency") or data.get("currency"),
             display_amount=data.get("DisplayAmount") or data.get("displayAmount"),
             raw=data,
@@ -57,10 +65,26 @@ class Image:
     def from_dict(cls, data: dict[str, Any] | None) -> Image | None:
         if not data:
             return None
+        h_raw = data.get("Height") or data.get("height")
+        h: int | None = None
+        if h_raw is not None:
+            try:
+                h = int(h_raw)
+            except (ValueError, TypeError):
+                h = None
+
+        w_raw = data.get("Width") or data.get("width")
+        w: int | None = None
+        if w_raw is not None:
+            try:
+                w = int(w_raw)
+            except (ValueError, TypeError):
+                w = None
+
         return cls(
             url=data.get("URL") or data.get("url") or "",
-            height=data.get("Height") or data.get("height"),
-            width=data.get("Width") or data.get("width"),
+            height=h,
+            width=w,
             raw=data,
         )
 
@@ -99,14 +123,30 @@ class PaginationInfo:
     def from_dict(cls, data: dict[str, Any] | None) -> PaginationInfo | None:
         if not data:
             return None
+        total_raw = (
+            data.get("TotalResultCount")
+            or data.get("totalResultCount")
+            or data.get("TotalResults")
+            or data.get("totalResults")
+        )
+        total_count: int | None = None
+        if total_raw is not None:
+            try:
+                total_count = int(total_raw)
+            except (ValueError, TypeError):
+                total_count = None
+
+        pages_raw = data.get("TotalPages") or data.get("totalPages")
+        total_pages: int | None = None
+        if pages_raw is not None:
+            try:
+                total_pages = int(pages_raw)
+            except (ValueError, TypeError):
+                total_pages = None
+
         return cls(
-            total_result_count=(
-                data.get("TotalResultCount")
-                or data.get("totalResultCount")
-                or data.get("TotalResults")
-                or data.get("totalResults")
-            ),
-            total_pages=data.get("TotalPages") or data.get("totalPages"),
+            total_result_count=total_count,
+            total_pages=total_pages,
             search_url=(
                 data.get("SearchURL")
                 or data.get("searchUrl")

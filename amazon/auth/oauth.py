@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import threading
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import httpx
 
@@ -16,7 +16,7 @@ from amazon.exceptions import AmazonAuthenticationError
 class OAuthToken:
     """OAuth 2.0 Access Token container."""
 
-    access_token: str
+    access_token: str = field(repr=False)
     token_type: str
     expires_at: float  # Epoch timestamp in seconds
     scope: str | None = None
@@ -29,6 +29,16 @@ class OAuthToken:
         """
         return time.time() >= (self.expires_at - buffer_seconds)
 
+    def __repr__(self) -> str:
+        if len(self.access_token) > 8:
+            masked = f"{self.access_token[:4]}...{self.access_token[-4:]}"
+        else:
+            masked = "***"
+        return (
+            f"OAuthToken(access_token={masked!r}, token_type={self.token_type!r}, "
+            f"expires_at={self.expires_at}, scope={self.scope!r})"
+        )
+
 
 class OAuthTokenManager:
     """Thread-safe and coroutine-safe manager for OAuth 2.0 access tokens."""
@@ -40,6 +50,7 @@ class OAuthTokenManager:
         token_url: str,
         scope: str = "creatorsapi::default",
         buffer_seconds: float = 300.0,
+        timeout: float = 15.0,
     ) -> None:
         """Initialize OAuthTokenManager.
 
@@ -49,20 +60,31 @@ class OAuthTokenManager:
             token_url: Regional OAuth 2.0 token endpoint (e.g. https://api.amazon.com/auth/o2/token).
             scope: OAuth scope (default: "creatorsapi::default").
             buffer_seconds: Refresh buffer window in seconds before token expires.
+            timeout: HTTP request timeout in seconds when creating standalone clients.
         """
         self.credential_id = credential_id.strip()
         self.credential_secret = credential_secret.strip()
         self.token_url = token_url.strip()
         self.scope = scope.strip()
         self.buffer_seconds = buffer_seconds
+        self.timeout = timeout
 
         self._cached_token: OAuthToken | None = None
         self._sync_lock = threading.Lock()
         self._async_lock: asyncio.Lock | None = None
+        self._async_lock_init_lock = threading.Lock()
+
+    def __repr__(self) -> str:
+        return (
+            f"OAuthTokenManager(credential_id={self.credential_id!r}, credential_secret='***', "
+            f"token_url={self.token_url!r}, scope={self.scope!r})"
+        )
 
     def _get_async_lock(self) -> asyncio.Lock:
         if self._async_lock is None:
-            self._async_lock = asyncio.Lock()
+            with self._async_lock_init_lock:
+                if self._async_lock is None:
+                    self._async_lock = asyncio.Lock()
         return self._async_lock
 
     def _build_token_payload(self) -> dict[str, str]:
@@ -75,7 +97,7 @@ class OAuthTokenManager:
 
     def _parse_token_response(self, response: httpx.Response) -> OAuthToken:
         if response.status_code != 200:
-            error_details = response.text
+            error_details = response.text[:2048] if len(response.text) > 2048 else response.text
             try:
                 data = response.json()
                 error_msg = data.get("error_description") or data.get("error") or error_details
@@ -124,7 +146,7 @@ class OAuthTokenManager:
             payload = self._build_token_payload()
             should_close = False
             if client is None:
-                client = httpx.Client(timeout=15.0)
+                client = httpx.Client(timeout=self.timeout)
                 should_close = True
 
             try:
@@ -149,13 +171,14 @@ class OAuthTokenManager:
             Bearer access token string.
         """
         async with self._get_async_lock():
-            if self._cached_token and not self._cached_token.is_expired(self.buffer_seconds):
-                return self._cached_token.access_token
+            with self._sync_lock:
+                if self._cached_token and not self._cached_token.is_expired(self.buffer_seconds):
+                    return self._cached_token.access_token
 
             payload = self._build_token_payload()
             should_close = False
             if client is None:
-                client = httpx.AsyncClient(timeout=15.0)
+                client = httpx.AsyncClient(timeout=self.timeout)
                 should_close = True
 
             try:
@@ -164,8 +187,10 @@ class OAuthTokenManager:
                     data=payload,
                     headers={"Content-Type": "application/x-www-form-urlencoded"},
                 )
-                self._cached_token = self._parse_token_response(resp)
-                return self._cached_token.access_token
+                token = self._parse_token_response(resp)
+                with self._sync_lock:
+                    self._cached_token = token
+                return token.access_token
             finally:
                 if should_close:
                     await client.aclose()

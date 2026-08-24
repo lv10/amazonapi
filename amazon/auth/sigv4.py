@@ -41,6 +41,12 @@ class SigV4Signer:
         self.aws_region = aws_region.strip()
         self.service = service.strip()
 
+    def __repr__(self) -> str:
+        return (
+            f"SigV4Signer(access_key={self.access_key!r}, secret_key='***', "
+            f"aws_region={self.aws_region!r}, service={self.service!r})"
+        )
+
     def sign(
         self,
         host: str,
