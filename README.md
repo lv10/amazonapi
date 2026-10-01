@@ -1,14 +1,14 @@
 # AmazonAPIWrapper
 
 [![PyPI version](https://img.shields.io/pypi/v/AmazonAPIWrapper.svg)](https://pypi.org/project/AmazonAPIWrapper/)
-[![Python Versions](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue.svg)](https://pypi.org/project/AmazonAPIWrapper/)
+[![Python Versions](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue.svg)](https://pypi.org/project/AmazonAPIWrapper/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/lv10/amazonapi/actions/workflows/ci.yml/badge.svg)](https://github.com/lv10/amazonapi/actions/workflows/ci.yml)
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-Donate-yellow.svg)](https://buymeacoffee.com/luisvillamg)
 
 A modern, high-performance, asynchronous and synchronous Python client for the Amazon Catalog APIs.
 
-Supports both Amazon's modern **Creators API** (OAuth 2.0) and **Product Advertising API 5.0 (PA-API 5.0)** (AWS SigV4), with complete type hints, automatic OAuth token management, exponential backoff retries, and Python 3.9 through 3.13+ support.
+Supports both Amazon's modern **Creators API** (OAuth 2.0) and **Product Advertising API 5.0 (PA-API 5.0)** (AWS SigV4), with complete type hints, automatic OAuth token management, exponential backoff retries, and Python 3.10 through 3.13+ support.
 
 ---
 
@@ -42,6 +42,11 @@ Or using `uv`:
 ```bash
 uv add AmazonAPIWrapper
 ```
+
+**Requires Python 3.10+.** Python 3.9 support was dropped because upstream
+security fixes (`anyio`, `urllib3`, `requests`, `pytest`) stopped shipping
+for 3.9 after it reached end-of-life. If you're still on Python 3.9, pin to
+the last compatible release: `pip install "AmazonAPIWrapper==1.0.1"`.
 
 ---
 
